@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "mapcoverage"
+version = "0.0.1"
+description = ""
+authors = ["Igor Tolmachov <me@igorek.dev>"]
+license = "GPL-v3.0-only"
+readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "~3.10"
+PyQt5 = "^5.15.9"
+PyQtWebEngine = "^5.15.6"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.0.0"
+black = "^23.1.0"
+isort = "^5.12.0"
+PyQt5-stubs = "^5.15.6.0"
+
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "ui.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "src_rc"
+disallow_untyped_defs = false

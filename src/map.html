@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map</title>
+    <script
+      src="https://api-maps.yandex.ru/2.1/?apikey=629be234-7e5d-475c-b7a1-78523f934a2c&lang=ru_RU"
+      type="text/javascript"
+    ></script>
+    <script type="text/javascript">
+      var map;
+
+      let id = 0;
+      let polygons = {};
+      let circles = {};
+
+      function init() {
+        map = new ymaps.Map("map", {
+          center: [53.593685794671245, 108.86705404767707],
+          controls: ["zoomControl", "typeSelector"],
+          type: "yandex#hybrid",
+          zoom: 15,
+        });
+      }
+
+      function addPolygon() {
+        let polygon = new ymaps.Polygon(
+          [[]],
+          {},
+          {
+            draggable: true,
+            editorUseAutoPanInDrawing: false,
+            editorUseMapMarginInDrawing: false,
+          }
+        );
+
+        let current = id;
+        id++;
+
+        polygons[current] = polygon;
+        circles[current] = [];
+        map.geoObjects.add(polygon);
+        polygon.editor.startDrawing();
+        polygon.editor.events.add("vertexadd", function (event) {
+          if (event.get("vertexIndex") >= 2) {
+            polygon.editor.stopDrawing();
+          }
+        });
+        polygon.events.add("geometrychange", function (event) {
+          clearCircles(current);
+        });
+
+        return current;
+      }
+
+      function editPolygon(id, status) {
+        if (status) {
+          polygons[id].editor.startEditing();
+        } else {
+          polygons[id].editor.stopEditing();
+        }
+      }
+
+      function deletePolygon(id) {
+        clearCircles(id);
+        map.geoObjects.remove(polygons[id]);
+        delete polygons[id];
+        delete circles[id];
+      }
+
+      function getCartesianPoints(id) {
+        let cartesian = [];
+
+        for (global of polygons[id].geometry.getCoordinates()[0]) {
+          let point = ymaps.projection.sphericalMercator.toGlobalPixels(
+            global,
+            16
+          );
+          cartesian.push(point);
+        }
+
+        return cartesian;
+      }
+
+      function addCircle(id, point) {
+        let global = ymaps.projection.sphericalMercator.fromGlobalPixels(
+          point,
+          16
+        );
+
+        let circle = new ymaps.Circle([global, 30], {}, { geodesic: true });
+
+        circles[id].push(circle);
+        map.geoObjects.add(circle);
+      }
+
+      function clearCircles(id) {
+        for (circle of circles[id]) {
+          map.geoObjects.remove(circle);
+        }
+        circles[id] = [];
+      }
+
+      ymaps.ready(init);
+    </script>
+    <style>
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
